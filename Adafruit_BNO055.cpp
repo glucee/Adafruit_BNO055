@@ -393,42 +393,6 @@ imu::Vector<3> Adafruit_BNO055::getVector(adafruit_vector_type_t vector_type) {
   y = ((int16_t)buffer[2]) | (((int16_t)buffer[3]) << 8);
   z = ((int16_t)buffer[4]) | (((int16_t)buffer[5]) << 8);
 
-<<<<<<< HEAD
-  /* Convert the value to an appropriate range (section 3.6.4) */
-  /* and assign the value to the Vector type */
-  switch(vector_type)
-  {
-    case VECTOR_MAGNETOMETER:
-      /* 1uT = 16 LSB */
-      xyz[0] = ((double)x)/16.0;
-      xyz[1] = ((double)y)/16.0;
-      xyz[2] = ((double)z)/16.0;
-      break;
-    case VECTOR_GYROSCOPE:
-      /* 1dps = 16 LSB */
-      xyz[0] = ((double)x)/16.0;
-      xyz[1] = ((double)y)/16.0;
-      xyz[2] = ((double)z)/16.0;
-      break;
-    case VECTOR_EULER:
-      /* 1 degree = 16 LSB */
-      xyz[0] = ((double)x)/16.0;
-      xyz[1] = ((double)y)/16.0;
-      xyz[2] = ((double)z)/16.0;
-      break;
-    case VECTOR_ACCELEROMETER:
-    case VECTOR_LINEARACCEL:
-      xyz[0] = ((double)x);
-      xyz[1] = ((double)y);
-      xyz[2] = ((double)z);
-      break;
-    case VECTOR_GRAVITY:
-      /* 1m/s^2 = 100 LSB */
-      xyz[0] = ((double)x)/100.0;
-      xyz[1] = ((double)y)/100.0;
-      xyz[2] = ((double)z)/100.0;
-      break;
-=======
   /*!
    * Convert the value to an appropriate range (section 3.6.4)
    * and assign the value to the Vector type
@@ -470,7 +434,6 @@ imu::Vector<3> Adafruit_BNO055::getVector(adafruit_vector_type_t vector_type) {
     xyz[1] = ((double)y) / 100.0;
     xyz[2] = ((double)z) / 100.0;
     break;
->>>>>>> e5a77cdb544f64e6f70eacbd46792b60a34b416d
   }
 
   return xyz;
@@ -706,36 +669,6 @@ bool Adafruit_BNO055::getSensorOffsets(
 }
 
 /*!
-<<<<<<< HEAD
-    @brief  Checks of all cal status values are set to 3 (fully calibrated)
-*/
-/**************************************************************************/
-bool Adafruit_BNO055::isFullyCalibrated(void)
-{
-    uint8_t system, gyro, accel, mag;
-    getCalibration(&system, &gyro, &accel, &mag);
-    
-    switch(_mode)
-    {
-      case OPERATION_MODE_ACCONLY:
-        return (accel==3);
-      case OPERATION_MODE_MAGONLY:
-        return (mag==3);
-      case OPERATION_MODE_GYRONLY:
-      case OPERATION_MODE_M4G: /* No magnetometer calibration required. */
-        return (gyro==3);
-      case OPERATION_MODE_ACCMAG:
-      case OPERATION_MODE_COMPASS:
-        return (accel==3 && mag==3);
-      case OPERATION_MODE_ACCGYRO:
-      case OPERATION_MODE_IMUPLUS:
-        return (accel==3 && gyro==3);
-      case OPERATION_MODE_MAGGYRO:
-        return (mag==3 && gyro==3);
-      default:
-        return (system==3 && gyro==3 && accel==3 && mag==3);
-    }
-=======
  *  @brief  Writes an array of calibration values to the sensor's offset
  *  @param  *calibData
  *          calibration data
@@ -779,7 +712,6 @@ void Adafruit_BNO055::setSensorOffsets(const uint8_t *calibData) {
   write8(MAG_RADIUS_MSB_ADDR, calibData[21]);
 
   setMode(lastMode);
->>>>>>> e5a77cdb544f64e6f70eacbd46792b60a34b416d
 }
 
 /*!
