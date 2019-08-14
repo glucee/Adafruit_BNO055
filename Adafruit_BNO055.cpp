@@ -814,6 +814,40 @@ void Adafruit_BNO055::enterSuspendMode() {
   delay(20);
 }
 
+byte Adafruit_BNO055::checkInterruptStatus(){
+  return read8(BNO055_INTR_STAT_ADDR);
+}
+
+void Adafruit_BNO055::reset_interrupts(){
+  uint8_t byte_to_write = 0x01 << 6;
+  write8(BNO055_SYS_TRIGGER_ADDR, byte_to_write);
+}
+
+/*!
+ *  @brief  Enter Low Power mode (i.e., sleep with wake)
+ */
+void Adafruit_BNO055::enterLowPowerMode() {
+  adafruit_bno055_opmode_t modeback = _mode;
+
+  /* Switch to config mode (just in case since this is the default) */
+  setMode(OPERATION_MODE_CONFIG);
+  delay(25);
+  write8(BNO055_PWR_MODE_ADDR, 0x01);
+
+  // Move to page 1
+  write8(BNO055_PAGE_ID_ADDR,0x01);
+  // Turn on interrupts and mask
+  uint8_t byte_to_write = 0x01 << 6;
+  write8(BNO055_INT_EN, byte_to_write);
+  write8(BNO055_INT_MSK, byte_to_write);
+  // Return to page 0
+  write8(BNO055_PAGE_ID_ADDR,0x00);
+
+  /* Set the requested operating mode (see section 3.3) */
+  setMode(modeback);
+  delay(20);
+}
+
 /*!
  *  @brief  Enter Normal mode (i.e., wake)
  */
@@ -894,40 +928,4 @@ bool Adafruit_BNO055::readLen(adafruit_bno055_reg_t reg, byte *buffer,
 
   /* ToDo: Check for errors! */
   return true;
-}
-
-/**************************************************************************/
-/*!
- @brief  Enter Suspend mode (i.e., sleep)
- */
-/**************************************************************************/
-void Adafruit_BNO055::enterSuspendMode()
-{
-    adafruit_bno055_opmode_t modeback = _mode;
-    
-    /* Switch to config mode (just in case since this is the default) */
-    setMode(OPERATION_MODE_CONFIG);
-    delay(25);
-    write8(BNO055_PWR_MODE_ADDR, 0x02);
-    /* Set the requested operating mode (see section 3.3) */
-    setMode(modeback);
-    delay(20);
-}
-
-/**************************************************************************/
-/*!
- @brief  Enter Normal mode (i.e., wake)
- */
-/**************************************************************************/
-void Adafruit_BNO055::enterNormalMode()
-{
-    adafruit_bno055_opmode_t modeback = _mode;
-    
-    /* Switch to config mode (just in case since this is the default) */
-    setMode(OPERATION_MODE_CONFIG);
-    delay(25);
-    write8(BNO055_PWR_MODE_ADDR, 0x00);
-    /* Set the requested operating mode (see section 3.3) */
-    setMode(modeback);
-    delay(20);
 }
