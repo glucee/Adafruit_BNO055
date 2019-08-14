@@ -210,7 +210,11 @@ public:
     ACCEL_RADIUS_LSB_ADDR = 0X67,
     ACCEL_RADIUS_MSB_ADDR = 0X68,
     MAG_RADIUS_LSB_ADDR = 0X69,
-    MAG_RADIUS_MSB_ADDR = 0X6A
+    MAG_RADIUS_MSB_ADDR = 0X6A,
+
+    /* Interrupt registers */
+    BNO055_INT_EN = 0x10,
+    BNO055_INT_MSK = 0x0F,
   } adafruit_bno055_reg_t;
 
   /** BNO055 power settings */
@@ -312,7 +316,12 @@ public:
 
   /* Power managments functions */
   void enterSuspendMode();
+  void enterLowPowerMode();
   void enterNormalMode();
+
+  /* Add interruption functions */
+  byte checkInterruptStatus();
+  void reset_interrupts();
 
 private:
   byte read8(adafruit_bno055_reg_t);
