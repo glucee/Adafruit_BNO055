@@ -840,6 +840,8 @@ void Adafruit_BNO055::enterLowPowerMode() {
   uint8_t byte_to_write = 0x01 << 6;
   write8(BNO055_INT_EN, byte_to_write);
   write8(BNO055_INT_MSK, byte_to_write);
+  byte_to_write = 31;
+  write8(BNO055_ACC_INT_Settings, byte_to_write);
   // Return to page 0
   write8(BNO055_PAGE_ID_ADDR,0x00);
 
@@ -847,6 +849,91 @@ void Adafruit_BNO055::enterLowPowerMode() {
   setMode(modeback);
   delay(20);
 }
+
+void Adafruit_BNO055::setSlowNoMotionDelay(int NM_delay, bool SMNM){
+  // Only certain delay times are permitted.
+  // 1 - 16 is OK
+  // then from 40 in increments of 8 to 336
+  // SMNM is true for slow motion and false for no motion.
+  byte slo_no_mot_dur;
+  byte byte_to_set;
+  // Serial.printf("Delay time requested %d seconds\r\n", NM_delay);
+  if(NM_delay > 0){
+    if(NM_delay<17){
+      slo_no_mot_dur = NM_delay - 1;
+    }
+    else if(NM_delay < 40){
+      // Throw error
+      Serial.println("NM_DELAY INVALID! 17-39secs not supported.");
+      return;
+    }
+    else if(NM_delay<337){
+      // Check to see if we're a multiple of eight
+      if(NM_delay % 8 == 0){
+        if(NM_delay<81){
+          slo_no_mot_dur = NM_delay / 8 + 11;
+        }
+        else{
+          slo_no_mot_dur = NM_delay / 8 + 21;
+        }
+      }
+      else{
+        // Throw error
+        Serial.println("NM_DELAY INVALID! times between 40 and 336 must be multiples of 8.");
+        return;
+      }
+    }
+    else{
+      // Too large - Throw error.
+      Serial.println("NM_DELAY INVALID! delay must be less than 337 secs.");
+      return;
+    }
+  }
+  else{
+    //Throw error
+    Serial.println("NM_DELAY INVALID! delay must be positive.");
+    return;
+  }
+  adafruit_bno055_opmode_t modeback = _mode;
+
+  /* Switch to config mode (just in case since this is the default) */
+  setMode(OPERATION_MODE_CONFIG);
+  delay(25);
+
+  // Move to page 1
+  write8(BNO055_PAGE_ID_ADDR,0x01);
+  byte_to_set = (slo_no_mot_dur << 1) | SMNM;
+  // Serial.printf("Byte to write to ACC_NM_SET: %02X\r\n", byte_to_set);
+  write8(ACC_NM_SET, byte_to_set);
+  
+  // Return to page 0
+  write8(BNO055_PAGE_ID_ADDR,0x00);
+
+  /* Set the requested operating mode (see section 3.3) */
+  setMode(modeback);
+  delay(20);
+}
+
+void Adafruit_BNO055::setAnyMotionThreshold(int threshold){
+  byte byte_to_set = threshold;
+  adafruit_bno055_opmode_t modeback = _mode;
+
+  /* Switch to config mode (just in case since this is the default) */
+  setMode(OPERATION_MODE_CONFIG);
+  delay(25);
+
+  // Move to page 1
+  write8(BNO055_PAGE_ID_ADDR,0x01);
+  write8(ACC_AM_THRESH, byte_to_set);
+  
+  // Return to page 0
+  write8(BNO055_PAGE_ID_ADDR,0x00);
+
+  /* Set the requested operating mode (see section 3.3) */
+  setMode(modeback);
+  delay(20);
+}
+
 
 /*!
  *  @brief  Enter Normal mode (i.e., wake)
@@ -867,6 +954,7 @@ void Adafruit_BNO055::enterNormalMode() {
  *  @brief  Writes an 8 bit value over I2C
  */
 bool Adafruit_BNO055::write8(adafruit_bno055_reg_t reg, byte value) {
+  // Serial.print("Starting byte write to bno...");
   _wire->beginTransmission(_address);
 #if ARDUINO >= 100
   _wire->write((uint8_t)reg);
@@ -876,7 +964,7 @@ bool Adafruit_BNO055::write8(adafruit_bno055_reg_t reg, byte value) {
   _wire->send(value);
 #endif
   _wire->endTransmission();
-
+  // Serial.println("done!");
   /* ToDo: Check for error! */
   return true;
 }
@@ -887,6 +975,7 @@ bool Adafruit_BNO055::write8(adafruit_bno055_reg_t reg, byte value) {
 byte Adafruit_BNO055::read8(adafruit_bno055_reg_t reg) {
   byte value = 0;
 
+  // Serial.print("Starting byte read from bno...");
   _wire->beginTransmission(_address);
 #if ARDUINO >= 100
   _wire->write((uint8_t)reg);
@@ -901,6 +990,7 @@ byte Adafruit_BNO055::read8(adafruit_bno055_reg_t reg) {
   value = _wire->receive();
 #endif
 
+  // Serial.println("done!");
   return value;
 }
 
@@ -909,6 +999,7 @@ byte Adafruit_BNO055::read8(adafruit_bno055_reg_t reg) {
  */
 bool Adafruit_BNO055::readLen(adafruit_bno055_reg_t reg, byte *buffer,
                               uint8_t len) {
+  // Serial.print("Starting length read from bno...");
   _wire->beginTransmission(_address);
 #if ARDUINO >= 100
   _wire->write((uint8_t)reg);
@@ -925,6 +1016,7 @@ bool Adafruit_BNO055::readLen(adafruit_bno055_reg_t reg, byte *buffer,
     buffer[i] = _wire->receive();
 #endif
   }
+  // Serial.println("done!");
 
   /* ToDo: Check for errors! */
   return true;

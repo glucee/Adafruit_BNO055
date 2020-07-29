@@ -215,6 +215,11 @@ public:
     /* Interrupt registers */
     BNO055_INT_EN = 0x10,
     BNO055_INT_MSK = 0x0F,
+    BNO055_ACC_INT_Settings = 0x12,
+
+    /* Tune no motion registers */
+    ACC_NM_SET = 0x16,
+    ACC_AM_THRESH = 0x11,
   } adafruit_bno055_reg_t;
 
   /** BNO055 power settings */
@@ -322,6 +327,8 @@ public:
   /* Add interruption functions */
   byte checkInterruptStatus();
   void reset_interrupts();
+  void setSlowNoMotionDelay(int NM_delay, bool SMNM);
+  void setAnyMotionThreshold(int threshold);
 
 private:
   byte read8(adafruit_bno055_reg_t);
